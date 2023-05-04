@@ -17,7 +17,7 @@ def main():
     
     for input_file in input_files:
         names = ['gender','age','hypertension','heart_disease','ever_married','work_type','Residence_type','avg_glucose_level','bmi','smoking_status','stroke'] 
-        features = ['gender','age','hypertension','heart_disease','ever_married','work_type','Residence_type','avg_glucose_level','bmi','smoking_status'] 
+        ufeatres = ['gender','age','hypertension','heart_disease','ever_married','work_type','Residence_type','avg_glucose_level','bmi','smoking_status'] 
         target = 'stroke'  
         df = pd.read_csv(input_file, names=names)    
         # restante do código aqui, utilizando o dataframe df como entrada de dados

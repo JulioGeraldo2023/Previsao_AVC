@@ -46,7 +46,7 @@ def plot_confusion_matrix(cm, classes,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')    
 
-def load_dataset(dataset='cancer'):        
+def load_dataset(dataset= 'df'):        
     if dataset == 'iris':
         # Load iris data and store in dataframe
         iris = datasets.load_iris()
@@ -66,48 +66,78 @@ def load_dataset(dataset='cancer'):
 
 def main():
     #load dataset
-    target_names, df = load_dataset('iris')
+    #target_names, df = load_dataset('iris')
+    input_files = ['0-Datasets/Avc_Normalization_Min-Max_Avc_Clear_delete.data', 
+                   '0-Datasets/Avc_Normalization_Min-Max_Avc_Clear_mean.data', 
+                   '0-Datasets/Avc_Normalization_Min-Max_Avc_Clear_median.data', 
+                   '0-Datasets/Avc_Normalization_Min-Max_Avc_Clear_mode.data', 
+                   '0-Datasets/Avc_Normalization_Min-Max_Avc_Clear_number.data', 
+                   
+                   '0-Datasets/Avc_Normalization_Robust_Avc_Clear_delete.data',
+                   '0-Datasets/Avc_Normalization_Robust_Avc_Clear_mean.data',
+                   '0-Datasets/Avc_Normalization_Robust_Avc_Clear_median.data',
+                   '0-Datasets/Avc_Normalization_Robust_Avc_Clear_mode.data',
+                   '0-Datasets/Avc_Normalization_Robust_Avc_Clear_number.data',
+                   
+                   '0-Datasets/Avc_Normalization_Unit Vector_Avc_Clear_delete.data',
+                   '0-Datasets/Avc_Normalization_Unit Vector_Avc_Clear_mean.data',
+                   '0-Datasets/Avc_Normalization_Unit Vector_Avc_Clear_median.data',
+                   '0-Datasets/Avc_Normalization_Unit Vector_Avc_Clear_mode.data',
+                   '0-Datasets/Avc_Normalization_Unit Vector_Avc_Clear_number.data',
+                   
+                   '0-Datasets/Avc_Normalization_Z-Score_Avc_Clear_delete.data',
+                   '0-Datasets/Avc_Normalization_Z-Score_Avc_Clear_mean.data',
+                   '0-Datasets/Avc_Normalization_Z-Score_Avc_Clear_median.data',
+                   '0-Datasets/Avc_Normalization_Z-Score_Avc_Clear_mode.data',
+                   '0-Datasets/Avc_Normalization_Z-Score_Avc_Clear_number.data']
 
-    # Separate X and y data
-    X = df.drop('target', axis=1)
-    y = df.target   
-    print("Total samples: {}".format(X.shape[0]))
+    for input_file in input_files:
+        names = ['gender','age','hypertension','heart_disease','ever_married','work_type','Residence_type','avg_glucose_level','bmi','smoking_status','stroke'] 
+        features = ['gender','age','hypertension','heart_disease','ever_married','work_type','Residence_type','avg_glucose_level','bmi','smoking_status'] 
+        target = 'stroke'  
+        df = pd.read_csv(input_file, names=names).head(300) 
+        
+        #target_names, df = load_dataset(df)
+        
+        # Separating out the features
+        X = df.loc[:, features].values
+        print(X.shape)
 
-    # Split the data - 75% train, 25% test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=1)
-    print("Total train samples: {}".format(X_train.shape[0]))
-    print("Total test  samples: {}".format(X_test.shape[0]))
+        # Separating out the target
+        y = df.loc[:,[target]].values
+         
+        print("Total samples: {}".format(X.shape[0]))
 
-    # Scale the X data using Z-score
-    scaler = StandardScaler()
-    X_train = scaler.fit_transform(X_train)
-    X_test = scaler.transform(X_test)
+        # Split the data - 75% train, 25% test
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=1)
+        print("Total train samples: {}".format(X_train.shape[0]))
+        print("Total test  samples: {}".format(X_test.shape[0]))
+       
+        # TESTS USING SVM classifier from sk-learn    
+        svm = SVC(kernel='poly') # poly, rbf, linear
+        # training using train dataset
+        svm.fit(X_train, y_train)
+        # get support vectors
+        print(svm.support_vectors_)
+        # get indices of support vectors
+        print(svm.support_)
+        # get number of support vectors for each class
+        print("Qtd Support vectors: ")
+        print(svm.n_support_)
+        # predict using test dataset
+        y_hat_test = svm.predict(X_test)
 
-    # TESTS USING SVM classifier from sk-learn    
-    svm = SVC(kernel='poly') # poly, rbf, linear
-    # training using train dataset
-    svm.fit(X_train, y_train)
-    # get support vectors
-    print(svm.support_vectors_)
-    # get indices of support vectors
-    print(svm.support_)
-    # get number of support vectors for each class
-    print("Qtd Support vectors: ")
-    print(svm.n_support_)
-    # predict using test dataset
-    y_hat_test = svm.predict(X_test)
+        # Get test accuracy score
+        accuracy = accuracy_score(y_test, y_hat_test)*100
+        f1 = f1_score(y_test, y_hat_test,average='macro')
+        print("Acurracy SVM from sk-learn: {:.2f}%".format(accuracy))
+        print("F1 Score SVM from sk-learn: {:.2f}%".format(f1))
 
-     # Get test accuracy score
-    accuracy = accuracy_score(y_test, y_hat_test)*100
-    f1 = f1_score(y_test, y_hat_test,average='macro')
-    print("Acurracy SVM from sk-learn: {:.2f}%".format(accuracy))
-    print("F1 Score SVM from sk-learn: {:.2f}%".format(f1))
-
-    # Get test confusion matrix    
-    cm = confusion_matrix(y_test, y_hat_test)        
-    plot_confusion_matrix(cm, target_names, False, "Confusion Matrix - SVM sklearn")      
-    plot_confusion_matrix(cm, target_names, True, "Confusion Matrix - SVM sklearn normalized" )  
-    plt.show()
+        # Get test confusion matrix    
+        cm = confusion_matrix(y_test, y_hat_test)        
+        plot_confusion_matrix(cm, y, False, "Confusion Matrix - SVM sklearn")      
+        plot_confusion_matrix(cm, y, True, "Confusion Matrix - SVM sklearn normalized" )  
+        plt.show()
 
 
 if __name__ == "__main__":
